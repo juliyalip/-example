@@ -1,7 +1,11 @@
 import React,  {useEffect, useState} from 'react';
-import axios from 'axios'
+import axios from 'axios';
+import Form from './Form';
+
+
 const CancelToken = axios.CancelToken;
 const source = CancelToken.source();
+
 
 
 
@@ -9,15 +13,18 @@ export default function News() {
     const [articles, setArticles] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [query, setQuery] = useState('react');
+    const [currentPage, setCurrentPage] = useState(1)
+
 
 
 
 
     useEffect(() => {
         setLoading(true)
-        axios.get('http://hn.algolia.com/api/v1/search?query=react')
+        axios.get(`http://hn.algolia.com/api/v1/search?query=${query}&page=${currentPage}`)
             .then(({ data: { hits } }) => {
-                setArticles(hits)
+                setArticles(prevState =>[...prevState, ...hits])
             }).catch(err => {
                 setError(err.message)
             }).finally(() => {
@@ -26,18 +33,24 @@ export default function News() {
         
            // при быстром переходе на новую вкладку этот запрос нужно отменять, что б избежать утечьки памяти
         // отменяем возвращая функцию, которая выполняется перед след.  useEffect и исп. как аналог componentWillUnmaunt   }, [])
-        return () => {
-            axios.get('http://hn.algolia.com/api/v1/search?query=react', {
-                cancelToken: source.token
-                // из доков axios вкладка "cancellation"
-})
+  return () => {
+      axios.get('http://hn.algolia.com/api/v1/search?query=react', {
+          cancelToken: source.token
+          // из доков axios вкладка "cancellation"
+  })
         }
-    }, [])
+    }, [query, currentPage])
         
+    const onSubmit = (value) => {
+        setQuery(value);
+        setCurrentPage(1)
+        setArticles([])
+    }
      
         
         return (
             <div>
+                <Form onSubmitSearch={onSubmit} />
                 {loading && <h1>loading...</h1>}
                 <ul>
                     {articles.length > 0 && articles.map(({ objectID, title, url }) => (
@@ -46,6 +59,7 @@ export default function News() {
                         </li>
                     ))}
                 </ul>
+                {articles.length > 0 && <button type="button" onClick={()=> { setCurrentPage(prevState => (prevState + 1))}}>load more</button>}
             </div>)
     }
 

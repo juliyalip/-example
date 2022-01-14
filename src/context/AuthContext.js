@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React from 'react';
 import context from './context'
 import avatar from './avatar.png'
 
@@ -9,9 +9,7 @@ const user = {
 
    export default class AuthContext extends React.Component{
    
-     //  static Consumer = context.Consumer;
-   
-       handleLogin = () => {
+          handleLogin = () => {
            this.setState({
                user: user
        })
